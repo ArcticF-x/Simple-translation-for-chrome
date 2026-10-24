@@ -1,0 +1,38 @@
+/* AI 网页翻译 - 译文样式 */
+.ai-trans {
+  color: #0b63c5 !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  font-style: normal !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.ai-trans--block {
+  display: block !important;
+  margin: 0.18em 0 0.4em !important;
+  opacity: 0.95;
+}
+
+.ai-trans--inline {
+  display: inline !important;
+}
+
+.ai-trans--inline::before {
+  content: " ";
+}
+
+@media (prefers-color-scheme: dark) {
+  .ai-trans {
+    color: #7cb8ff !important;
+  }
+}

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>AI 网页翻译</title>
+  </head>
+  <body>
+    <header class="head">
+      <div class="logo" aria-hidden="true">译</div>
+      <div class="head-text">
+        <h1>AI 网页翻译</h1>
+        <p id="pageHint">一键翻译当前网页</p>
+      </div>
+      <span class="badge" id="statusBadge">就绪</span>
+    </header>
+
+    <section class="card target-card global-lang">
+      <div class="row-label">
+        <span>全局目标语言</span>
+        <span class="tiny">网页 / 划词 / 文本共用</span>
+      </div>
+      <div class="target-row">
+        <select id="targetLang" aria-label="全局目标语言">
+          <optgroup label="常用">
+            <option value="简体中文">简体中文</option>
+            <option value="繁體中文">繁體中文</option>
+            <option value="English">English</option>
+            <option value="日本語">日本語</option>
+            <option value="한국어">한국어</option>
+          </optgroup>
+          <optgroup label="欧洲语言">
+            <option value="Français">Français</option>
+            <option value="Deutsch">Deutsch</option>
+            <option value="Español">Español</option>
+            <option value="Русский">Русский</option>
+            <option value="Português">Português</option>
+            <option value="Italiano">Italiano</option>
+            <option value="Nederlands">Nederlands</option>
+            <option value="Polski">Polski</option>
+            <option value="Svenska">Svenska</option>
+            <option value="Čeština">Čeština</option>
+            <option value="Українська">Українська</option>
+            <option value="Română">Română</option>
+            <option value="Magyar">Magyar</option>
+            <option value="Ελληνικά">Ελληνικά</option>
+          </optgroup>
+          <optgroup label="其他">
+            <option value="العربية">العربية</option>
+            <option value="Türkçe">Türkçe</option>
+            <option value="ไทย">ไทย</option>
+            <option value="Tiếng Việt">Tiếng Việt</option>
+            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+            <option value="Bahasa Melayu">Bahasa Melayu</option>
+            <option value="हिन्दी">हिन्दी</option>
+            <option value="עברית">עברית</option>
+          </optgroup>
+        </select>
+        <button id="swapLang" class="mini swap" type="button" title="在简体中文和 English 之间切换">⇄</button>
+      </div>
+      <p class="global-hint">划词 / 文本立即生效；整页点「重新翻译」应用。</p>
+    </section>
+
+    <div class="segment tabs" role="tablist">
+      <button type="button" data-tab="page" class="active" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.5"></circle>
+          <path d="M3.5 12h17M12 3.5c2.3 2.3 3.7 5.3 3.7 8.5S14.3 18.2 12 20.5C9.7 18.2 8.3 15.2 8.3 12S9.7 5.8 12 3.5Z"></path>
+        </svg>
+        <span>网页翻译</span>
+      </button>
+      <button type="button" data-tab="text" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 6.5h14M12 6.5V19M8.5 19h7"></path>
+          <path d="M16.5 13H20M18.25 11.5v4"></path>
+        </svg>
+        <span>文本翻译</span>
+      </button>
+    </div>
+
+    <section class="card panel" id="panel-page" role="tabpanel">
+      <div class="row-label">
+        <span>翻译方式</span>
+        <span class="tiny" id="modeHint">原文下方显示译文</span>
+      </div>
+      <div class="segment" id="modeGroup" role="tablist">
+        <button type="button" data-mode="bilingual" class="active" role="tab">双语对照</button>
+        <button type="button" data-mode="replace" role="tab">覆盖原文</button>
+      </div>
+
+      <div class="progress" id="progressWrap" hidden>
+        <div class="bar"><i id="progressBar"></i></div>
+        <span id="progressText">翻译中…</span>
+      </div>
+
+      <div class="actions">
+        <button id="translateBtn" class="primary" type="button">翻译此页</button>
+        <button id="restoreBtn" class="ghost" type="button" disabled>恢复原文</button>
+      </div>
+
+      <p class="sel-tip">选中网页文字，点浮出的「译」即可单独翻译该段</p>
+    </section>
+
+    <section class="card panel" id="panel-text" role="tabpanel" hidden>
+      <div class="row-label">
+        <span>文本翻译</span>
+        <span class="tiny" id="textTargetHint">翻译为 简体中文</span>
+      </div>
+      <textarea
+        id="textInput"
+        maxlength="5000"
+        placeholder="输入要翻译的文字，Ctrl + Enter 快速翻译"
+        spellcheck="false"
+      ></textarea>
+      <div class="text-actions">
+        <button id="textTranslateBtn" class="primary text-btn" type="button">翻译</button>
+        <button id="textClearBtn" class="ghost text-btn" type="button">清空</button>
+      </div>
+      <div class="text-output" id="textOutputWrap" hidden>
+        <div class="row-label">
+          <span>译文</span>
+          <button id="copyBtn" class="mini xs" type="button">复制</button>
+        </div>
+        <div id="textOutput" class="text-output-body" dir="auto"></div>
+      </div>
+    </section>
+
+    <details class="card settings" id="settings">
+      <summary>
+        <span>接口设置</span>
+        <span class="arrow" aria-hidden="true">⌄</span>
+      </summary>
+
+      <div class="field">
+        <label for="provider">服务商</label>
+        <select id="provider">
+          <option value="openai">OpenAI</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="anthropic">Anthropic Claude</option>
+          <option value="custom">自定义（OpenAI 兼容）</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="apiBase">API 地址</label>
+        <input id="apiBase" placeholder="https://api.openai.com/v1" spellcheck="false" />
+      </div>
+
+      <div class="field">
+        <label for="model">模型</label>
+        <input id="model" placeholder="gpt-4o-mini" spellcheck="false" />
+      </div>
+
+      <div class="field">
+        <label for="thinking">思考强度 <span class="tiny">翻译建议关闭，最快最省</span></label>
+        <select id="thinking">
+          <option value="none">关闭（推荐）</option>
+          <option value="low">低</option>
+          <option value="medium">中</option>
+          <option value="high">高</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="apiKey">API Key</label>
+        <div class="key-row">
+          <input id="apiKey" type="password" placeholder="sk-..." spellcheck="false" />
+          <button id="toggleKey" class="mini" type="button">显示</button>
+        </div>
+      </div>
+
+      <div class="settings-foot">
+        <button id="testBtn" class="mini" type="button">测试连接</button>
+        <span id="testResult" class="test-result"></span>
+      </div>
+
+      <p class="hint">密钥只保存在本机浏览器中，翻译时页面文本会发送给你填写的接口。</p>
+    </details>
+
+    <footer>
+      <span>快捷键</span>
+      <kbd>Alt</kbd><span>+</span><kbd>T</kbd>
+      <span class="tiny">快速翻译 / 恢复</span>
+    </footer>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
